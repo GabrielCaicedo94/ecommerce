@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title id="pageTitle">Detalle del Producto</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        #producto-detalle {
+            display: flex;
+            gap: 40px;
+            margin-top: 30px;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        #producto-imagen img {
+            max-width: 400px;
+            height: auto;
+            border-radius: 6px;
+        }
+        #producto-info {
+            flex-grow: 1;
+        }
+        #producto-precio {
+            font-size: 2.5em;
+            color: #ff9900;
+            margin: 15px 0;
+        }
+    </style>
+</head>
+<body>
+    <div id="toast-container"></div>
+<header class="main-header">
+    <a href="landing.html" class="logo-link">
+        <span style="font-size: 1.5em;">⚡️</span> E-SHOP
+    </a>
+
+    <nav class="nav-actions">
+        <a href="index.html">
+            <button class="cart-icon-btn">
+                🛍️ Ir a la Tienda
+            </button>
+        </a>
+        
+        <a href="login.html">
+            <button style="background-color: var(--color-success); color: white;">
+                ⚙️
+            </button>
+        </a>
+    </nav>
+</header>
+<hr style="margin-top: 0; margin-bottom: 20px;">
+    
+    <div id="producto-detalle">
+        </div>
+
+    <script>
+        const API_URL = "http://localhost:3000/productos";
+        
+        function showToast(message, type = 'info') {
+    const container = document.getElementById('toast-container');
+    const toast = document.createElement('div');
+    
+    // Asigna la clase de estilo (success, error, info)
+    toast.className = `toast ${type}`;
+    toast.textContent = message;
+    
+    container.appendChild(toast);
+
+    // Muestra el toast después de un pequeño retraso
+    setTimeout(() => {
+        toast.classList.add('show');
+    }, 10);
+
+    // Oculta y elimina el toast después de 3 segundos
+    setTimeout(() => {
+        toast.classList.remove('show');
+        // Elimina el elemento del DOM después de la transición
+        setTimeout(() => {
+            container.removeChild(toast);
+        }, 300); 
+    }, 3000);
+}
+        // 1. Obtener el ID del producto desde la URL (ej: detalle.html?id=5)
+        const params = new URLSearchParams(window.location.search);
+        const productId = params.get('id');
+
+        if (!productId) {
+            document.getElementById("producto-detalle").innerHTML = "<h1>Error: ID de producto no especificado.</h1>";
+        } else {
+            cargarDetalle(productId);
+        }
+
+        function cargarDetalle(id) {
+            fetch(`${API_URL}/${id}`)
+                .then(r => {
+                    if (r.status === 404) throw new Error("Producto no encontrado");
+                    return r.json();
+                })
+                .then(p => {
+                    // Actualizar el título de la pestaña
+                    document.getElementById('pageTitle').innerText = p.nombre;
+                    
+                    const detalleDiv = document.getElementById("producto-detalle");
+                    detalleDiv.innerHTML = `
+                        <div id="producto-imagen">
+                            <img src="${p.imagen || 'placeholder.png'}" alt="${p.nombre}">
+                        </div>
+                        <div id="producto-info">
+                            <h1>${p.nombre}</h1>
+                            <p id="producto-precio">$${p.precio}</p>
+                            <h3>Descripción:</h3>
+                            <p>${p.descripcion}</p>
+                            
+                            <button onclick='agregar(${JSON.stringify(p)})'>Añadir al Carrito</button>
+                        </div>
+                    `;
+                })
+                .catch(err => {
+                    document.getElementById("producto-detalle").innerHTML = `<h1>Error: ${err.message}</h1>`;
+                    console.error(err);
+                });
+        }
+        
+        // 2. Necesitamos la función agregar del index.html para que el botón funcione
+        function agregar(producto) {
+            let carrito = JSON.parse(localStorage.getItem("carrito")) || [];
+ 
+            const idProducto = producto.id; 
+            const indiceExistente = carrito.findIndex(item => item.id === idProducto);
+
+             if (indiceExistente !== -1) {
+                carrito[indiceExistente].cantidad++;
+         // ALERT: Notificación informativa
+                showToast(`¡${producto.nombre} añadido otra vez!`, 'info'); 
+            } else {
+                carrito.push({ ...producto, cantidad: 1 });
+        // ALERT: Notificación de éxito
+                showToast(`¡${producto.nombre} agregado al carrito!`, 'success');
+            }
+ 
+            localStorage.setItem("carrito", JSON.stringify(carrito));
+        }
+    </script>
+
+    <footer style="text-align: center; padding: 20px; background-color: var(--color-background-light); color: #666;">
+        &copy; 2025 E-Shop. Todos los derechos reservados.
+    </footer>
+    
+</body>
+</html>

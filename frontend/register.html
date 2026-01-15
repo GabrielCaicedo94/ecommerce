@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro de Cliente</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="styles.css"> 
+</head>
+<body>
+    <div id="toast-container"></div>
+    <div class="login-container"> <div id="register-form" class="auth-card">
+            <h1>✍️ Crear Cuenta</h1>
+            <form id="formRegistro">
+                <input type="text" id="nombres" placeholder="Nombres" required>
+                <input type="text" id="apellidos" placeholder="Apellidos" required>
+                <input type="text" id="nombre_usuario" placeholder="Nombre de Usuario Único" required>
+                <input type="password" id="clave" placeholder="Contraseña" required>
+                <input type="email" id="email" placeholder="Email" required>
+                <input type="tel" id="celular" placeholder="Número Celular (Opcional)">
+                <input type="date" id="fecha_nacimiento" placeholder="Fecha de Nacimiento (Opcional)">
+                
+                <button type="submit" class="primary-action-btn">Registrarse</button>
+            </form>
+            <p><a href="login-cliente.html">Ya tengo cuenta</a></p>
+        </div>
+    </div>
+    <script>
+    // --- Configuración de la API (Ajustar si tu puerto es diferente) ---
+    const API_BASE = "http://localhost:3000";
+
+    // ----------------------------------------------------
+    // FUNCIÓN DE NOTIFICACIÓN (TOAST)
+    // ----------------------------------------------------
+    function showToast(message, type = 'info') {
+        const container = document.getElementById('toast-container');
+        // Si el contenedor no existe, no hacemos nada (o lo creamos si prefieres)
+        if (!container) {
+            console.error('El contenedor de toast no existe en la página.');
+            return;
+        }
+
+        const toast = document.createElement('div');
+        
+        // Asume que tienes estilos CSS para .toast, .info, .success, .error
+        toast.className = `toast ${type}`;
+        toast.textContent = message;
+        
+        container.appendChild(toast);
+
+        // Mostrar con un pequeño retraso para la transición CSS
+        setTimeout(() => { toast.classList.add('show'); }, 10);
+
+        // Desaparecer después de 3 segundos
+        setTimeout(() => {
+            toast.classList.remove('show');
+            // Eliminar el toast del DOM después de la transición
+            setTimeout(() => { container.removeChild(toast); }, 300);
+        }, 3000);
+    }
+
+    // ----------------------------------------------------
+    // LÓGICA DE REGISTRO DE USUARIOS
+    // ----------------------------------------------------
+    document.getElementById("formRegistro").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        
+        const data = {
+            nombres: document.getElementById('nombres').value,
+            apellidos: document.getElementById('apellidos').value,
+            nombre_usuario: document.getElementById('nombre_usuario').value,
+            clave: document.getElementById('clave').value,
+            celular: document.getElementById('celular').value,
+            email: document.getElementById('email').value,
+            // Si el campo está vacío, enviamos null en lugar de una cadena vacía
+            fecha_nacimiento: document.getElementById('fecha_nacimiento').value || null, 
+        };
+
+        // Verifica que la URL de la API sea correcta: API_BASE + "/registro"
+        const response = await fetch(API_BASE + "/registro", { 
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data)
+        });
+
+        const result = await response.json();
+
+        if (response.ok) {
+            showToast(result.mensaje, 'success');
+            // Redirigir al login después del registro exitoso
+            setTimeout(() => window.location.href = "login-cliente.html", 1500);
+        } else {
+            // Mostrar mensaje de error del servidor (ej: nombre de usuario duplicado)
+            showToast(result.mensaje, 'error');
+        }
+    });
+</script>
+</body>
+</html>

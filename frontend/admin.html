@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Administrar Productos</title>
+    <style>
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="toast-container"></div>
+<header class="main-header">
+    <a class="logo-link" style="color: var(--color-primary);">
+        Administración
+    </a>
+
+    <nav class="nav-actions">
+        <a href="index.html">
+            <button class="header-action-btn" style="background-color: var(--color-primary); color: white;">
+                🛍️ Volver a la Tienda
+            </button>
+        </a>
+        
+        <button onclick="logout()" class="header-action-btn" style="background-color: var(--color-danger); color: white;">
+            ➜] Cerrar Sesión
+        </button>
+    </nav>
+</header>
+<hr style="margin-top: 0; margin-bottom: 20px;">
+
+    <h2><span id="formTitle">➕ Agregar</span> Producto</h2>
+    <form id="formAgregar">
+    <input type="hidden" id="productoId"> 
+
+    <input id="nombre" placeholder="Nombre" required><br>
+    
+    <select id="categoria" required>
+        <option value="" disabled selected>-- Selecciona Categoría --</option>
+        <option value="Tecnologia">Tecnología</option>
+        <option value="Hogar">Hogar</option>
+        <option value="Electrodomesticos">Electrodomésticos</option>
+    </select><br>
+    
+    <input id="precio" type="number" step="0.01" placeholder="Precio" required><br>
+    <input id="imagen" placeholder="URL Imagen"><br>
+    <textarea id="descripcion" placeholder="Descripción"></textarea><br>
+    <button type="submit" id="submitBtn">Guardar</button>
+    <button type="button" onclick="resetForm()">Cancelar Edición</button>
+</form>
+    
+    <hr>
+
+    <h2>🗑️ Productos Existentes</h2>
+    <table id="tablaProductos">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Nombre</th>
+                <th>Precio</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+        </tbody>
+    </table>
+
+<script>
+    const API_BASE = "http://localhost:3000";
+    const PRODUCTS_ROUTE = "/productos"; // Ruta base para el CRUD
+    const form = document.getElementById("formAgregar");
+
+    // [FUNCIÓN TOAST]
+    function showToast(message, type = 'info') {
+        const container = document.getElementById('toast-container');
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;
+        toast.textContent = message;
+        container.appendChild(toast);
+        setTimeout(() => { toast.classList.add('show'); }, 10);
+        setTimeout(() => {
+            toast.classList.remove('show');
+            setTimeout(() => { container.removeChild(toast); }, 300);
+        }, 3000);
+    }
+    
+    // Función para obtener el encabezado de autorización (Token)
+    function getAuthHeader() {
+        const token = localStorage.getItem('adminToken');
+        return { 
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}` 
+        };
+    }
+
+    function logout() {
+        localStorage.removeItem('adminToken'); 
+        fetch("http://localhost:3000/logout", { method: "POST" })
+        .then(r => r.json())
+        .then(data => {
+            showToast(data.mensaje, 'info');
+            window.location.href = "login.html"; 
+        })
+        .catch(err => {
+            showToast("Error al intentar cerrar sesión.", 'error');
+            window.location.href = "login.html"; 
+        });
+    }
+
+    // Función unificada para manejar la respuesta del servidor (Token/Validación/Error)
+    function handleResponse(r) {
+        if (r.status === 401 || r.status === 403) {
+            showToast("Sesión expirada o no autorizada. Redirigiendo...", 'error');
+            localStorage.removeItem('adminToken');
+            window.location.href = "login.html";
+            throw new Error("Token Error"); 
+        }
+        if (!r.ok) {
+            return r.json().then(errorData => { throw new Error(errorData.mensaje); });
+        }
+        return r.json();
+    }
+    
+    function resetForm() {
+        form.reset();
+        document.getElementById("productoId").value = "";
+        document.getElementById("formTitle").innerText = "➕ Agregar";
+        document.getElementById("submitBtn").innerText = "Guardar";
+    }
+
+    function cargarParaEditar(id) {
+        fetch(API_BASE + PRODUCTS_ROUTE + `/${id}`) 
+            .then(r => r.json())
+            .then(p => {
+                document.getElementById("productoId").value = p.id;
+                document.getElementById("nombre").value = p.nombre;
+
+                // ✅ AÑADIR LA LÍNEA PARA SELECCIONAR LA CATEGORÍA:
+                document.getElementById("categoria").value = p.categoria;
+
+                document.getElementById("precio").value = p.precio;
+                document.getElementById("imagen").value = p.imagen;
+                document.getElementById("descripcion").value = p.descripcion;
+                
+                document.getElementById("formTitle").innerText = `Editando Producto ID: ${p.id}`;
+                document.getElementById("submitBtn").innerText = "Guardar Cambios";
+            })
+            .catch(err => {
+                showToast("No se pudo cargar el producto para edición.", 'error');
+                console.error(err);
+            });
+    }
+
+    function listarProductos() {
+    // Esta ruta GET /productos es pública
+    fetch(API_BASE + PRODUCTS_ROUTE) 
+        .then(r => r.json())
+        .then(data => { 
+            // CORRECCIÓN CLAVE: Acepta tanto el array simple [] como el objeto de paginación {products: []}
+            const productos = data.products || data; 
+            
+            // Asegura que sea un array antes de usar forEach
+            const productosArray = Array.isArray(productos) ? productos : []; 
+
+            const tbody = document.querySelector("#tablaProductos tbody");
+            tbody.innerHTML = "";
+
+            productosArray.forEach(p => {
+                const tr = document.createElement("tr");
+                tr.innerHTML = `
+                    <td>${p.id}</td>
+                    <td>${p.nombre}</td>
+                    <td>$${p.precio}</td>
+                    <td>
+                        <button onclick="cargarParaEditar(${p.id})">Editar</button>
+                        <button onclick="eliminarProducto(${p.id})">Eliminar</button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        })
+        .catch(err => {
+            showToast("Error al cargar productos.", 'error');
+            console.error("Error al listar productos:", err);
+        });
+}
+    
+    function eliminarProducto(id) {
+        if (!confirm(`¿Estás seguro de que quieres eliminar el producto con ID ${id}?`)) {
+            return;
+        }
+        
+        fetch(API_BASE + PRODUCTS_ROUTE + `/${id}`, { 
+            method: "DELETE",
+            headers: getAuthHeader() // ENVÍA EL TOKEN
+        })
+        .then(handleResponse) 
+        .then(respuesta => {
+            showToast(respuesta.mensaje, 'success'); 
+            listarProductos(); 
+        })
+        .catch(err => {
+            if (err.message !== "Token Error") {
+                showToast(err.message || "Error al eliminar el producto.", 'error');
+                console.error("Error de la API:", err);
+            }
+        });
+    }
+
+    // Event Listener Principal para Agregar/Editar (POST/PUT)
+    form.addEventListener("submit", e => {
+        e.preventDefault();
+
+        const productoId = document.getElementById("productoId").value;
+        const data = {
+            nombre: nombre.value,
+            precio: precio.value,
+            imagen: imagen.value,
+            descripcion: descripcion.value,
+            //AÑADIR LA CATEGORÍA:
+            categoria: document.getElementById("categoria").value
+        };
+
+        const method = productoId ? "PUT" : "POST";
+        const url = productoId ? API_BASE + PRODUCTS_ROUTE + `/${productoId}` : API_BASE + PRODUCTS_ROUTE;
+
+        fetch(url, {
+            method: method,
+            headers: getAuthHeader(), // ENVÍA EL TOKEN
+            body: JSON.stringify(data),
+        })
+        .then(handleResponse) 
+        .then(respuesta => {
+            showToast(respuesta.mensaje, 'success');
+            form.reset();
+            resetForm();
+            listarProductos();
+        })
+        .catch(err => {
+            if (err.message !== "Token Error") {
+                showToast(err.message || "Error al procesar el producto.", 'error');
+                console.error("Error de la API:", err);
+            }
+        });
+    });
+
+    // LÓGICA DE EJECUCIÓN/INICIALIZACIÓN
+    function checkAuthAndLoad() {
+        const token = localStorage.getItem('adminToken');
+        if (!token) {
+            showToast("Por favor, inicie sesión.", 'info');
+            window.location.href = "login.html";
+            return;
+        }
+        
+        // Si hay token, carga la lista
+        listarProductos(); 
+    }
+
+    checkAuthAndLoad(); 
+</script>
+
+<footer style="text-align: center; padding: 20px; background-color: var(--color-background-light); color: #666;">
+        &copy; 2025 E-Shop. Todos los derechos reservados.
+</footer>
+
+</body>
+</html>

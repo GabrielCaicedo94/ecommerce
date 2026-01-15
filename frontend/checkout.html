@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Finalizar Compra - Checkout</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        /* Estilos específicos para Checkout */
+        #checkout-container {
+            display: flex;
+            gap: 40px;
+            max-width: 1200px;
+            margin: 20px auto;
+        }
+        #resumen, #formulario {
+            background-color: white;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+        }
+        #formulario {
+            flex: 1; /* Ocupa el espacio restante */
+        }
+        #resumen {
+            flex-basis: 400px; /* Ancho fijo para el resumen */
+        }
+        #resumen-lista div {
+            border-bottom: 1px dashed #eee;
+            padding: 10px 0;
+            display: flex;
+            justify-content: space-between;
+        }
+        #checkout-total {
+            font-size: 1.5em;
+            color: #007bff;
+            margin-top: 15px;
+        }
+        input[type="text"], input[type="email"], input[type="tel"], textarea {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        #btn-confirmar {
+            background-color: #28a745;
+            color: white;
+            padding: 15px;
+            width: 100%;
+            border: none;
+            cursor: pointer;
+            font-size: 1.1em;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div id="toast-container"></div>
+<header class="main-header">
+    <a href="landing.html" class="logo-link">
+        <span style="font-size: 1.5em;">⚡️</span> E-SHOP
+    </a>
+
+    <nav class="nav-actions">
+        <a href="index.html">
+            <button class="cart-icon-btn">
+                🛍️ Ir a la Tienda
+            </button>
+        </a>
+        
+        <a href="login.html">
+            <button style="background-color: var(--color-success); color: white;">
+                ⚙️
+            </button>
+        </a>
+    </nav>
+</header>
+<hr style="margin-top: 0; margin-bottom: 20px;">
+
+    <div id="checkout-container">
+        <div id="resumen">
+            <h2>Resumen del Pedido</h2>
+            <div id="resumen-lista">
+                </div>
+            <h3 id="checkout-total"></h3>
+        </div>
+
+        <div id="formulario">
+            <h2>Datos de Envío</h2>
+            <form id="formCheckout">
+                <input type="text" id="nombre_cliente" placeholder="Nombre Completo" required>
+                <input type="email" id="email_cliente" placeholder="Correo Electrónico" required>
+                <input type="tel" id="telefono_cliente" placeholder="Teléfono de Contacto">
+                <textarea id="direccion_envio" placeholder="Dirección de Envío Completa" required></textarea>
+
+                <button type="submit" id="btn-confirmar">Confirmar Orden</button>
+            </form>
+        </div>
+    </div>
+    
+    <script>
+        const API_URL_ORDENES = "http://localhost:3000/ordenes";
+        
+        // --- TOAST FUNCTION ---
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            
+            toast.className = `toast ${type}`;
+            toast.textContent = message;
+            
+            container.appendChild(toast);
+
+            setTimeout(() => { toast.classList.add('show'); }, 10);
+
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => { container.removeChild(toast); }, 300);
+            }, 3000);
+        }
+        
+
+        let carrito = JSON.parse(localStorage.getItem("carrito")) || [];
+
+        function cargarResumen() {
+            const lista = document.getElementById("resumen-lista");
+            const totalElement = document.getElementById("checkout-total");
+            let total = 0;
+            
+            lista.innerHTML = ''; 
+
+            if (carrito.length === 0) {
+                lista.innerHTML = '<p>El carrito está vacío. Vuelve a la tienda.</p>';
+                document.getElementById('btn-confirmar').disabled = true;
+                return;
+            }
+
+            carrito.forEach(p => {
+                const subtotal = p.precio * p.cantidad;
+                total += subtotal;
+                
+                const div = document.createElement('div');
+                div.innerHTML = `
+                    <span>${p.nombre} (x${p.cantidad})</span>
+                    <span>$${subtotal.toFixed(2)}</span>
+                `;
+                lista.appendChild(div);
+            });
+
+            totalElement.innerText = `Total Final: $${total.toFixed(2)}`;
+            return total;
+        }
+
+        const totalFinal = cargarResumen();
+
+        document.getElementById('formCheckout').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            if (carrito.length === 0) {
+                showToast('No puedes procesar una orden con el carrito vacío.', 'error');
+                return;
+            }
+
+            const data = {
+                nombre_cliente: document.getElementById('nombre_cliente').value,
+                email_cliente: document.getElementById('email_cliente').value,
+                telefono_cliente: document.getElementById('telefono_cliente').value,
+                direccion_envio: document.getElementById('direccion_envio').value,
+                total: totalFinal,
+                carrito: carrito // Enviamos el array completo del carrito
+            };
+
+            // Petición POST a la nueva ruta /ordenes
+            const response = await fetch(API_URL_ORDENES, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+
+            const responseData = await response.json();
+            
+            if (response.ok) {
+                showToast(`Orden #${responseData.ordenId} confirmada. Recibirás un email.`, 'success');
+                
+                // Limpiar el carrito después de la compra exitosa
+                localStorage.removeItem('carrito');
+                carrito = [];
+                cargarResumen(); // Actualiza la vista
+                
+                // Opcional: Redirigir al usuario
+                setTimeout(() => {
+                    window.location.href = 'index.html'; 
+                }, 3000);
+
+            } else {
+                showToast(`Error al procesar: ${responseData.mensaje}`, 'error');
+                console.error('Error del servidor:', responseData);
+            }
+        });
+    </script>
+    <footer style="text-align: center; padding: 20px; background-color: var(--color-background-light); color: #666;">
+        &copy; 2025 E-Shop. Todos los derechos reservados.
+    </footer>
+</body>
+</html>

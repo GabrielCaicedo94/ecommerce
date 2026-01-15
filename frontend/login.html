@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Acceso Administrador</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    
+    </head>
+<body>
+    <div id="toast-container"></div>
+    
+    <div class="login-container">
+        <div id="login-form">
+            <h1>🔑 Acceso Administrador</h1>
+            
+            <form id="formLogin">
+                <input type="password" id="clave" placeholder="Ingresa la Clave de Administrador" required>
+                
+                <button type="submit" class="primary-action-btn">
+                    Ingresar
+                </button>
+            </form>
+            
+            <a href="index.html" class="back-link">
+                ← Volver a la Tienda
+            </a>
+        </div>
+    </div>
+
+    <script>
+        // [FUNCIÓN showToast COMPLETA AQUÍ]
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            
+            toast.className = `toast ${type}`;
+            toast.textContent = message;
+            
+            container.appendChild(toast);
+
+            setTimeout(() => { toast.classList.add('show'); }, 10);
+
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => { container.removeChild(toast); }, 300);
+            }, 3000);
+        }
+
+        document.getElementById("formLogin").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const clave = document.getElementById("clave").value;
+
+            const response = await fetch("http://localhost:3000/login", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ clave })
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                // GUARDAR EL TOKEN JWT
+                localStorage.setItem('adminToken', data.token); 
+
+                showToast(data.mensaje, 'success');
+                window.location.href = "admin.html"; 
+            } else {
+                showToast(data.mensaje, 'error');
+            }
+        });
+    </script>
+    <footer style="text-align: center; padding: 20px; background-color: var(--color-background-light); color: #666;">
+        &copy; 2025 E-Shop. Todos los derechos reservados.
+    </footer>
+</body>
+</html>

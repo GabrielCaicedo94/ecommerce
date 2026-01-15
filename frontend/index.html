@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <title>Tienda</title>
+</head>
+<body>
+    <div id="toast-container"></div>
+<header class="main-header">
+    <a href="landing.html" class="logo-link">
+        <span style="font-size: 1.5em;">⚡️</span> CHICKFY
+    </a>
+
+    <nav class="nav-actions">
+        <a href="carrito.html">
+            <button class="cart-icon-btn">
+                🛒 Ir al carrito
+            </button>
+        </a>
+
+        <div id="user-display">
+            <a href="login-cliente.html">
+                <button class="header-action-btn" style="background-color: var(--color-success); color: white;"> 
+                    👤 Iniciar Sesión
+                </button>
+            </a>
+        </div>
+        
+        <a href="login.html">
+            <button style="background-color: var(--color-success); color: white;">
+                ⚙️ 
+            </button>
+        </a>
+    </nav>
+</header>
+
+<hr style="margin-top: 0; margin-bottom: 20px;">
+
+<hr>
+<div class="filter-center-wrapper">
+    <div class="filter-controls">
+        
+        <div class="input-group search-group">
+            <label for="searchInput">Buscar:</label>
+            <input type="text" id="searchInput" placeholder="Nombre del producto">
+        </div>
+        <div class="input-group">
+            <label for="categoriaFilter">Categoría:</label>
+            <select id="categoriaFilter" onchange="performSearch()">
+                <option value="">Todas</option>
+                <option value="Tecnologia">Tecnología</option>
+                <option value="Hogar">Hogar</option>
+                <option value="Electrodomesticos">Electrodomésticos</option>
+            </select>
+        </div>
+
+        <div class="input-group price-group">
+            <label>Precio:</label>
+            <div class="price-inputs">
+                <input type="number" id="minPriceInput" placeholder="Min">
+                <span>-</span>
+                <input type="number" id="maxPriceInput" placeholder="Max">
+            </div>
+        </div>
+        
+        <div class="action-buttons">
+            <button onclick="performSearch()" class="filter-apply-btn">
+                🔍︎
+            </button>
+            <button onclick="resetFilters()" class="filter-reset-btn">
+                ⟲
+            </button>
+        </div>
+        
+    </div> </div> <hr>
+
+    <div id="lista"></div>
+    <div id="pagination-controls" style="display: flex; justify-content: center; margin: 30px 0; gap: 10px;">
+    </div>
+
+    <script>
+    const API_URL = "http://localhost:3000/productos";
+    
+    let currentPage = 1;
+    const ITEMS_PER_PAGE = 12; // Debe coincidir con el valor por defecto del backend
+
+    // ------------------------------------------------------------------
+    // A. UTILIDADES (TOAST)
+    // ------------------------------------------------------------------
+    function showToast(message, type = 'info') {
+        const container = document.getElementById('toast-container');
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;
+        toast.textContent = message;
+        container.appendChild(toast);
+        setTimeout(() => { toast.classList.add('show'); }, 10);
+        setTimeout(() => {
+            toast.classList.remove('show');
+            setTimeout(() => { container.removeChild(toast); }, 300);
+        }, 3000);
+    }
+    
+    // ------------------------------------------------------------------
+    // B. LÓGICA DE CARGA, FILTROS Y PAGINACIÓN
+    // ------------------------------------------------------------------
+    
+    function loadProducts(page = 1) {
+        currentPage = page; // Actualiza la página actual
+        
+        const searchInput = document.getElementById('searchInput');
+        const minInput = document.getElementById('minPriceInput');
+        const maxInput = document.getElementById('maxPriceInput');
+        const categoryInput = document.getElementById('categoriaFilter');
+        const selectedCategory = categoryInput ? categoryInput.value : '';
+        
+        const searchTerm = searchInput.value;
+        const min = minInput.value;
+        const max = maxInput.value;
+        
+        let fetchUrl = API_URL;
+        const urlParams = new URLSearchParams();
+
+        // Filtros
+        if (searchTerm) urlParams.append('search', searchTerm);
+        if (min) urlParams.append('minPrice', min);
+        if (max) urlParams.append('maxPrice', max);
+        if (selectedCategory) urlParams.append('category', selectedCategory);
+        
+        // Paginación
+        urlParams.append('page', page);
+        urlParams.append('limit', ITEMS_PER_PAGE);
+
+        fetchUrl += `?${urlParams.toString()}`;
+
+        fetch(fetchUrl)
+            .then(r => r.json())
+            .then(data => { 
+                // data contiene: {products: [], currentPage: N, totalPages: M}
+                renderProducts(data.products); 
+                renderPagination(data.currentPage, data.totalPages); 
+            })
+            .catch(error => { 
+                console.error("Error al cargar productos:", error);
+                document.getElementById("lista").innerHTML = "<p>No se pudo conectar a la API de productos.</p>";
+            });
+    }
+
+    function renderProducts(productos) {
+        const cont = document.getElementById("lista"); 
+        cont.innerHTML = ''; 
+
+        if (productos.length === 0) {
+            cont.innerHTML = `<p style="grid-column: 1 / -1; text-align: center;">No se encontraron productos que coincidan con los filtros.</p>`;
+            return;
+        }
+        
+        let htmlProductos = productos.map(p => `
+            <a href="detalle.html?id=${p.id}" style="text-decoration: none; color: inherit;">
+                <div class="product-card">
+                    <img src="${p.imagen || 'placeholder.png'}" alt="${p.nombre}">
+                    <h3>${p.nombre}</h3>
+                    <p>Precio: $${p.precio}</p>
+                    <button onclick='event.preventDefault(); agregar(${JSON.stringify(p)})'>Agregar al Carrito</button>
+                </div>
+            </a>
+        `).join('');
+
+        cont.innerHTML = htmlProductos;
+    }
+
+    function renderPagination(current, total) {
+        const controls = document.getElementById('pagination-controls');
+        controls.innerHTML = '';
+
+        if (total <= 1) return; // No muestra controles si solo hay una página
+
+        // Botón Anterior
+        const prevBtn = `<button onclick="loadProducts(${current - 1})" ${current === 1 ? 'disabled' : ''} style="padding: 8px 15px; background-color: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer;">⏮</button>`;
+        
+        // Texto de la página actual
+        const pageInfo = `<span style="padding: 8px 15px;">Página ${current} de ${total}</span>`;
+        
+        // Botón Siguiente
+        const nextBtn = `<button onclick="loadProducts(${current + 1})" ${current === total ? 'disabled' : ''} style="padding: 8px 15px; background-color: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer;">⏭</button>`;
+
+        controls.innerHTML = prevBtn + pageInfo + nextBtn;
+    }
+
+    // Modificar performSearch para reiniciar la página a 1 al filtrar
+    function performSearch() {
+        loadProducts(1); 
+    }
+
+    // Función para limpiar los filtros
+    function resetFilters() {
+        document.getElementById('searchInput').value = '';
+        document.getElementById('minPriceInput').value = '';
+        document.getElementById('maxPriceInput').value = '';
+        loadProducts(1); // Carga la página 1 sin filtros
+    }
+
+    // ------------------------------------------------------------------
+    // C. LÓGICA DE CARRITO 
+    // ------------------------------------------------------------------
+    function agregar(producto) {
+        let carrito = JSON.parse(localStorage.getItem("carrito")) || [];
+        const idProducto = producto.id; 
+        const indiceExistente = carrito.findIndex(item => item.id === idProducto);
+
+        if (indiceExistente !== -1) {
+            carrito[indiceExistente].cantidad++;
+            showToast(`¡${producto.nombre} añadido otra vez!`, 'info'); 
+        } else {
+            carrito.push({ ...producto, cantidad: 1 });
+            showToast(`¡${producto.nombre} agregado al carrito!`, 'success');
+        }
+        
+        localStorage.setItem("carrito", JSON.stringify(carrito));
+    }
+
+    // ------------------------------------------------------------------
+    // D. MENSAJE DE BIENVENIDA
+    // ------------------------------------------------------------------
+    document.addEventListener("DOMContentLoaded", () => {
+    checkUserSession();
+});
+
+function checkUserSession() {
+    const userDisplay = document.getElementById("user-display");
+    const clienteNombre = localStorage.getItem('clienteNombre'); // El nombre que guardamos en el login
+    const clienteToken = localStorage.getItem('clienteToken');
+
+    if (clienteToken && clienteNombre) {
+        // Si hay sesión, cambiamos el botón por el mensaje de bienvenida y un botón de salir
+        userDisplay.innerHTML = `
+            <div class="user-welcome-container">
+                <span class="welcome-text">¡Hola, <strong>${clienteNombre}</strong>!</span>
+                <button onclick="logoutCliente()" class="logout-link">Cerrar Sesión</button>
+            </div>
+        `;
+    }
+}
+
+function logoutCliente() {
+    // Borramos los datos de sesión
+    localStorage.removeItem('clienteToken');
+    localStorage.removeItem('clienteNombre');
+    // Recargamos la página para actualizar la barra de navegación
+    window.location.reload();
+}    
+
+    // ------------------------------------------------------------------
+    // E. INICIALIZACIÓN
+    // ------------------------------------------------------------------
+   
+   loadProducts(1); // Carga la página 1 al inicio
+</script>
+
+<footer style="text-align: center; padding: 20px; background-color: var(--color-background-light); color: #666;">
+        &copy; 2025 E-Shop. Todos los derechos reservados.
+    </footer>
+
+</body>
+</html>

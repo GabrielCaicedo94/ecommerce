@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E-Shop | Inicio</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        /* Estilos específicos para la Landing Page */
+        #hero {
+            position: relative;
+            height: 80vh;
+            background: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), url('ruta/a/tu/imagen_fondo.jpg') center/cover no-repeat;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            margin-bottom: 50px;
+        }
+
+        #hero h1 {
+            font-size: 4em;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        #hero p {
+            font-size: 1.5em;
+            margin-bottom: 40px;
+        }
+
+        /* Sección de Contacto */
+        #contact-section {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 50px 20px;
+            background-color: var(--color-background-soft);
+        }
+
+        #contact-card {
+            background-color: var(--color-background-light);
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+            max-width: 600px;
+            width: 100%;
+        }
+
+        #contact-card h2 {
+            border-bottom: none;
+            text-align: center;
+            margin-bottom: 25px;
+            color: var(--color-text-dark);
+        }
+        
+        #contact-card button {
+            background-color: var(--color-primary);
+            width: 100%;
+            margin-top: 15px;
+            padding: 15px;
+            font-size: 1.1em;
+        }
+        
+        /* Aseguramos que los inputs se vean bien, tomados de styles.css */
+        #contact-card input, #contact-card textarea {
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            padding: 10px;
+            margin-bottom: 15px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+    </style>
+</head>
+<body>
+    <div id="toast-container"></div>
+<header class="main-header">
+    <a href="landing.html" class="logo-link">
+        <span style="font-size: 1.5em;">⚡️</span> E - SHOP
+    </a>
+
+    <nav class="nav-actions">
+        <a href="index.html">
+            <button class="cart-icon-btn">
+                🛍️ Ir a la Tienda
+            </button>
+        </a>
+        
+         <a href="login-cliente.html">
+        <button class="header-action-btn" style="background-color: var(--color-success); color: white;"> 
+                👤
+        </button>
+        </a>
+
+        <a href="login.html">
+            <button style="background-color: var(--color-success); color: white;">
+                ⚙️
+            </button>
+        </a>
+
+    </nav>
+</header>
+<hr style="margin-top: 0; margin-bottom: 20px;">
+
+    <section id="hero-carousel">
+    <div id="carousel-content-fixed">
+        <h1>DESCUBRE, INNOVA, AHORRA.</h1>
+        <p>Los mejores precios y descuentos.</p>
+        <a href="index.html">
+            <button class="hero-button">Ver Novedades</button>
+        </a>
+    </div>
+
+    <div class="carousel-container">
+        <div class="carousel-slide active" style="background-image: url('Imagenes/slide1.jpg');"></div>
+
+        <div class="carousel-slide" style="background-image: url('Imagenes/slide2.jpg');"></div>
+
+        <div class="carousel-slide" style="background-image: url('Imagenes/slide3.jpg');"></div>
+    </div>
+    
+    <button class="prev-btn" onclick="moveSlide(-1)">&#10094;</button>
+    <button class="next-btn" onclick="moveSlide(1)">&#10095;</button>
+    
+    <div class="carousel-dots">
+        <span class="dot active" onclick="currentSlide(1)"></span>
+        <span class="dot" onclick="currentSlide(2)"></span>
+        <span class="dot" onclick="currentSlide(3)"></span>
+    </div>
+    </section>
+
+    <section id="contact-section">
+        <div id="contact-card">
+            <h2>CONTACTANOS</h2>
+            <p style="text-align: center; color: #666; margin-bottom: 25px;">
+                llena el formulario y nos pondremos en contacto en menos de 24 horas.
+            </p>
+            <form>
+                <input type="text" placeholder="Nombre" required>
+                <input type="email" placeholder="Correo Electrónico" required>
+                <input type="tel" placeholder="Teléfono">
+                <textarea placeholder="¿En qué podemos ayudarte?"></textarea>
+                <button type="submit">Enviar Consulta</button>
+            </form>
+        </div>
+    </section>
+
+    <footer style="text-align: center; padding: 20px; background-color: var(--color-background-light); color: #666;">
+        &copy; 2025 E-Shop. Todos los derechos reservados.
+    </footer>
+
+    <script>
+    // --- JAVASCRIPT PARA EL CARRUSEL ---
+
+    let slideIndex = 1;
+
+    function showSlides(n) {
+        const slides = document.querySelectorAll(".carousel-slide");
+        const container = document.querySelector(".carousel-container");
+        const dots = document.querySelectorAll(".dot");
+        
+        if (n > slides.length) {
+            slideIndex = 1; // Vuelve al primer slide
+        }
+        if (n < 1) {
+            slideIndex = slides.length; // Va al último slide
+        }
+
+        // Calcula el desplazamiento horizontal (Ej: -0%, -33.33%, -66.66%)
+        const translateX = -(slideIndex - 1) * 33.33; 
+        container.style.transform = `translateX(${translateX}%)`;
+
+        // Actualiza la clase 'active' de los puntos indicadores
+        dots.forEach((dot, index) => {
+            dot.classList.remove("active");
+            if (index === slideIndex - 1) {
+                dot.classList.add("active");
+            }
+        });
+    }
+
+    // Mueve la diapositiva al hacer clic en las flechas (n es +1 o -1)
+    function moveSlide(n) {
+        showSlides(slideIndex += n);
+    }
+
+    // Muestra una diapositiva específica al hacer clic en los puntos
+    function currentSlide(n) {
+        showSlides(slideIndex = n);
+    }
+
+    // Inicializa el carrusel (se ejecuta cuando el DOM está completamente cargado)
+    document.addEventListener("DOMContentLoaded", () => {
+        showSlides(slideIndex);
+        
+        // Opcional: Auto-avance del carrusel cada 5 segundos
+        /*
+        setInterval(() => {
+            moveSlide(1);
+        }, 5000); 
+        */
+    });
+</script>
+
+</body>
+</html>

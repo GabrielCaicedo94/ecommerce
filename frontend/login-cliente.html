@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Iniciar Sesión</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="toast-container"></div>
+    <div class="login-container">
+        <div id="login-form-cliente" class="auth-card">
+            <h1>👤 Iniciar Sesión</h1>
+            <h2 id="welcome-message" style="color: var(--color-primary); margin-bottom: 20px; display: none;"></h2>
+            
+            <form id="formLoginCliente">
+                <input type="text" id="nombre_usuario" placeholder="Nombre de Usuario" required>
+                <input type="password" id="clave" placeholder="Contraseña" required>
+                
+                <button type="submit" class="primary-action-btn">Entrar</button>
+            </form>
+            <p><a href="register.html">Crear Cuenta</a> | <a href="index.html">Volver a la Tienda</a></p>
+        </div>
+    </div>
+    <script>
+        
+        function showToast(message, type = 'info') {
+        const container = document.getElementById('toast-container');
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;
+        toast.textContent = message;
+        container.appendChild(toast);
+        setTimeout(() => { toast.classList.add('show'); }, 10);
+        setTimeout(() => {
+            toast.classList.remove('show');
+            setTimeout(() => { container.removeChild(toast); }, 300);
+        }, 3000);
+    }
+
+        document.getElementById("formLoginCliente").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const nombre_usuario = document.getElementById("nombre_usuario").value;
+            const clave = document.getElementById("clave").value;
+
+            const response = await fetch("http://localhost:3000/login-cliente", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ nombre_usuario, clave })
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                // GUARDAR TOKEN Y NOMBRE
+                localStorage.setItem('clienteToken', data.token); 
+                localStorage.setItem('clienteNombre', data.nombre_usuario);
+
+                // Mostrar mensaje de bienvenida
+                document.getElementById('welcome-message').textContent = `Bienvenido, ${data.nombre_usuario}!`;
+                document.getElementById('welcome-message').style.display = 'block';
+                document.getElementById('formLoginCliente').style.display = 'none';
+                
+                showToast(data.mensaje, 'success');
+                setTimeout(() => window.location.href = "checkout.html", 1500); // Redirige al checkout
+            } else {
+                showToast(data.mensaje, 'error');
+            }
+        });
+    </script>
+</body>
+</html>

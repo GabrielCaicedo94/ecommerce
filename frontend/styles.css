@@ -1,0 +1,1011 @@
+/* Definición de Variables CSS (Asegúrate que esto está al inicio) */
+:root {
+    --color-primary: #007bff;     /* Azul (Acción/Botones Principales) */
+    --color-secondary: #6c757d;   /* Gris (Cancelar) */
+    --color-success: #28a745;     /* Verde (Guardar, Éxito) */
+    --color-danger: #dc3545;      /* Rojo (Eliminar) */
+    --color-text-dark: #333;      
+    --color-background-light: #fff; 
+    --color-background-soft: #f4f4f4; 
+    --color-warning: #ffc107;     /* Amarillo para Editar/Advertencia */
+    --shadow-subtle: 0 4px 12px rgba(0, 0, 0, 0.08); /* Sombra para tarjetas */
+}
+
+/* -----------------------------------
+ * ESTILOS DEL HEADER Y SESIÓN (Modificado)
+ * ----------------------------------- */
+.main-header {
+    position: sticky; 
+    top: 0;
+    z-index: 100; 
+    background-color: var(--color-background-light);
+    padding: 10px 25px; 
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.logo-link {
+    font-size: 1.6em;
+    font-weight: 700;
+    color: var(--color-primary);
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.nav-actions {
+    display: flex;
+    align-items: center; /* Alinea todos los botones y el texto al centro vertical */
+    gap: 15px;
+}
+
+/* --- Contenedor Dinámico de Usuario --- */
+#user-display {
+    display: flex;
+    align-items: center;
+}
+
+.user-welcome-container {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end; /* Alinea texto a la derecha */
+    line-height: 1.2;
+}
+
+.welcome-text {
+    font-size: 0.9rem;
+    color: var(--color-text-dark);
+    font-weight: 600;
+}
+
+.welcome-text strong {
+    color: var(--color-primary);
+}
+
+.logout-link {
+    background: none;
+    border: none;
+    color: var(--color-danger);
+    font-size: 0.75rem;
+    text-decoration: underline;
+    cursor: pointer;
+    padding: 0;
+    margin-top: 2px;
+    font-family: 'Poppins', sans-serif;
+}
+
+.logout-link:hover {
+    color: #a71d2a;
+}
+
+/* Botones dentro de nav-actions */
+.nav-actions button {
+    padding: 8px 15px;
+    border-radius: 6px;
+    font-size: 0.95em;
+    font-weight: 600;
+    transition: all 0.2s;
+    cursor: pointer;
+    border: none;
+}
+
+.cart-icon-btn {
+    background-color: var(--color-primary); 
+    color: white;
+}
+
+.header-action-btn {
+    background-color: var(--color-success);
+    color: white;
+}
+
+/* Estilos Globales y Tipografía */
+body {
+    font-family: 'Poppins', sans-serif; 
+    margin: 0; /* Eliminamos el margen del body */
+    padding: 20px; /* Añadimos padding interno para el contenido */
+    background-color: var(--color-background-soft);
+    color: var(--color-text-dark);
+}
+
+h1, h2 {
+    color: var(--color-text-dark);
+    border-bottom: 2px solid #eee;
+    padding-bottom: 5px;
+    margin-bottom: 20px;
+}
+
+/* Campos de Formulario (Más limpios y con efecto focus) */
+input[type="text"], 
+input[type="number"], 
+input[type="email"], /* Añadido para Checkout */
+input[type="tel"],   /* Añadido para Checkout */
+textarea {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    box-sizing: border-box;
+    transition: border-color 0.3s;
+}
+
+input:focus, textarea:focus {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 0.15rem rgba(0, 123, 255, 0.25);
+    outline: none;
+}
+/* Enlaces (Links) */
+a {
+    color: #007bff;
+    text-decoration: none;
+    margin-right: 15px;
+}
+
+a:hover {
+    text-decoration: none;
+}
+
+/* -----------------------------------
+ * ESTILOS DEL HEADER DE NAVEGACIÓN
+ * ----------------------------------- */
+.main-header {
+    /* Fija la barra en la parte superior */
+    position: sticky; 
+    top: 0;
+    z-index: 50; /* Asegura que esté por encima de todo */
+    
+    background-color: var(--color-background-light);
+    padding: 5px 10px; 
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); /* Sombra sutil */
+    
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.logo-link {
+    font-size: 1.6em;
+    font-weight: 700;
+    color: var(--color-primary); /* Color principal */
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.nav-actions button {
+    /* Botones de Admin y Carrito */
+    padding: 5px 15px;
+    border-radius: 5px; /* Botones redondos */
+    font-size: 1em;
+    font-weight: 800;
+    margin-left: 10px;
+    transition: background-color 0.2s;
+}
+
+.cart-icon-btn {
+    background-color: var(--color-primary); 
+    color: white;
+    font-size: 1.2em; /* Hace el ícono más grande */
+    padding: 10px 14px; /* Ajuste para el círculo */
+}
+
+.cart-icon-btn:hover {
+    background-color: #0069d9;
+}
+
+/* -----------------------------------
+ * ESTILOS DE LOGIN Y CENTRADO
+ * ----------------------------------- */
+.login-container {
+    /* Centra el formulario en la pantalla */
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: var(--color-background-soft); 
+}
+
+#login-form {
+    max-width: 400px;
+    width: 90%; 
+    padding: 40px;
+    background-color: var(--color-background-light); 
+    border-radius: 12px;
+    
+    /* Sombra elegante de elevación */
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15); 
+    text-align: center;
+}
+
+#login-form h1 {
+    font-size: 1.8em;
+    color: var(--color-text-dark);
+    border-bottom: none; 
+    margin-bottom: 30px;
+    padding-bottom: 0;
+}
+
+/* Campos de entrada */
+#login-form input {
+    width: 100%;
+    padding: 12px;
+    margin-bottom: 25px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    box-sizing: border-box;
+    font-size: 1em;
+    transition: border-color 0.3s;
+}
+
+#login-form input:focus {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 0.15rem rgba(0, 123, 255, 0.25);
+    outline: none;
+}
+
+/* Botón de Ingresar (Azul Principal) */
+.primary-action-btn {
+    width: 100%;
+    background-color: var(--color-primary); /* Azul */
+    color: white;
+    padding: 12px;
+    border-radius: 6px;
+    font-size: 1.1em;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    transition: background-color 0.3s;
+}
+
+.primary-action-btn:hover {
+    background-color: #0056b3; 
+}
+
+/* Enlace Volver a la Tienda (sutil) */
+.back-link {
+    display: block;
+    margin-top: 20px;
+    color: var(--color-secondary);
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 0.95em;
+}
+
+.back-link:hover {
+    color: var(--color-primary);
+    text-decoration: none;
+}
+
+/* =========================================================
+ * ESTILOS GENERALES PARA AUTENTICACIÓN (LOGIN/REGISTER CLIENTE)
+ * ========================================================= */
+
+/* Contenedor que centra el formulario en la pantalla */
+.login-container {
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: var(--color-background-soft); 
+    padding: 20px;
+}
+
+/* Tarjeta  */
+.auth-card {
+    max-width: 380px; 
+    width: 100%; 
+    padding: 30px; 
+    background-color: var(--color-background-light); 
+    border-radius: 12px;
+    
+   
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1); 
+    text-align: center;
+}
+
+.auth-card h1 {
+    font-size: 1.8em;
+    color: var(--color-primary);
+    margin-bottom: 25px;
+    border-bottom: none; 
+}
+
+/* Estilo para todos los inputs del formulario */
+.auth-card input[type="text"],
+.auth-card input[type="password"],
+.auth-card input[type="email"],
+.auth-card input[type="tel"],
+.auth-card input[type="date"] { 
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 15px; 
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    box-sizing: border-box;
+    font-size: 1em;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    background-color: white;
+}
+
+.auth-card input:focus {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 1px var(--color-primary);
+    outline: none;
+}
+
+/* Estilo para botones de acción principal */
+.auth-card .primary-action-btn {
+    width: 100%;
+    margin-top: 10px;
+    background-color: var(--color-primary);
+    color: white;
+    padding: 12px;
+    border: none;
+    border-radius: 6px;
+    font-size: 1.1em;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.auth-card .primary-action-btn:hover {
+    background-color: #0056b3; 
+}
+
+/* Estilos de enlaces inferiores (Ya tengo cuenta / Volver a la Tienda) */
+.auth-card p a {
+    color: var(--color-secondary);
+    text-decoration: none;
+    font-weight: 500;
+    margin: 0 8px;
+    font-size: 0.9em;
+}
+
+.auth-card p a:hover {
+    color: var(--color-primary);
+    text-decoration: underline;
+}
+
+/* -----------------------------------
+ * ESTILOS PARA CONTENIDO FIJO
+ * ----------------------------------- */
+#carousel-content-fixed {
+    /* Posicionamiento y centrado absoluto */
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    
+    /* Centrado del contenido */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    
+    color: white; /* Asegura que el texto se vea */
+    z-index: 10; /* Debe estar sobre las imágenes */
+}
+
+/* Ajuste de estilos de texto (tomados del bloque anterior) */
+#carousel-content-fixed h1 {
+    font-size: 4em;
+    margin-bottom: 10px;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+    z-index: 2;
+}
+
+#carousel-content-fixed p {
+    font-size: 1.5em;
+    margin-bottom: 40px;
+    z-index: 2;
+}
+
+/* El degradado debe ir sobre el contenedor fijo para oscurecer la imagen */
+#hero-carousel::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    /* background: rgba(0, 0, 0, 0.4); 
+    z-index: 5; /* Z-index menor que el contenido fijo, pero mayor que los slides */
+}
+
+/* Quitar el degradado de los slides individuales */
+.carousel-slide::before {
+    content: none;
+}
+
+/* -----------------------------------
+ * ESTILOS DEL CARRUSEL (SLIDER)
+ * ----------------------------------- */
+#hero-carousel {
+    position: relative; /* <--- DEBE ESTAR ACTIVO PARA EL POSICIONAMIENTO ABSOLUTO */
+    height: 80vh; /* Altura para mostrar el banner */
+    overflow: hidden; 
+}
+
+.carousel-container {
+    display: flex;
+    height: 100%;
+    width: 300%; /* El ancho total de las 3 diapositivas */
+    transition: transform 0.5s ease-in-out; /* Transición suave al moverse */
+}
+
+.carousel-slide {
+    width: 33.33%; 
+    height: 100%;
+    flex-shrink: 0; 
+    
+    background-size: cover;
+    background-position: center;
+   
+}
+
+/* Efecto de degradado sobre la imagen para mejorar la lectura del texto */
+.carousel-slide::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+     background: rgba(211, 204, 204, 0.204); 
+    z-index: 1;
+}
+
+/* Contenido del slide (texto y botones) */
+.carousel-slide h1, .carousel-slide p, .hero-button {
+    z-index: 2; /* Asegura que el contenido esté sobre el degradado */
+}
+
+.carousel-slide h1 {
+    font-size: 4em;
+    margin-bottom: 10px;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.carousel-slide p {
+    font-size: 1.5em;
+    margin-bottom: 40px;
+}
+
+.hero-button {
+    background-color: var(--color-success); /* Usando tu variable de color */
+    color: white;
+    padding: 12px 30px;
+    font-size: 1.2em;
+    border-radius: 5px;
+    transition: background-color 0.3s;
+}
+
+.hero-button:hover {
+    background-color: #218838; /* Tono ligeramente más oscuro */
+}
+
+/* --- Flechas de Navegación --- */
+.prev-btn, .next-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(0, 0, 0, 0.5);
+    color: white;
+    border: none;
+    padding: 15px;
+    cursor: pointer;
+    font-size: 1.5em;
+    z-index: 10;
+}
+
+.prev-btn { left: 10px; border-radius: 5px 0 0 5px; }
+.next-btn { right: 10px; border-radius: 0 5px 5px 0; }
+
+/* --- Indicadores (Puntos) --- */
+.carousel-dots {
+    position: absolute;
+    bottom: 20px;
+    width: 100%;
+    text-align: center;
+    z-index: 10;
+}
+
+.dot {
+    height: 12px;
+    width: 12px;
+    margin: 0 5px;
+    background-color: rgba(255, 255, 255, 0.5);
+    border-radius: 50%;
+    display: inline-block;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.dot.active {
+    background-color: white;
+}
+
+/* -----------------------------------
+ * ESTILOS DEL FORMULARIO (Agregar/Editar)
+ * ----------------------------------- */
+#formAgregar {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    gap: 10px; /* Espacio entre elementos */
+    max-width: 500px;
+}
+
+input[type="text"], 
+input[type="number"], 
+textarea {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box; /* Asegura que el padding no cambie el ancho */
+}
+
+textarea {
+    resize: vertical;
+    min-height: 80px;
+}
+
+/* -----------------------------------
+ * ESTILOS DE BOTONES
+ * ----------------------------------- */
+button {
+    padding: 10px 15px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.3s;
+}
+
+#submitBtn { /* Botón principal de Guardar */
+    background-color: #28a745;
+    color: white;
+}
+
+#submitBtn:hover {
+    background-color: #218838;
+}
+
+button[type="button"] { /* Botón de Cancelar Edición */
+    background-color: #6c757d;
+    color: white;
+}
+
+button[type="button"]:hover {
+    background-color: #5a6268;
+}
+
+/* -----------------------------------
+ * ESTILOS DE LA TABLA (Listado de Productos)
+ * ----------------------------------- */
+#tablaProductos {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+    box-shadow: var(--shadow-subtle); /* Añadir sombra a toda la tabla */
+    background-color: var(--color-background-light);
+}
+
+#tablaProductos thead th {
+    background-color: var(--color-primary);
+    color: white;
+    font-weight: 600;
+    padding: 12px 8px; /* Aumentar padding */
+}
+
+#tablaProductos tbody tr:nth-child(even) { 
+    background-color: #f7f7f7; /* Gris muy suave */
+}
+
+#tablaProductos tbody tr:hover {
+    background-color: #e9ecef; /* Resaltar al pasar el ratón */
+}
+
+/* Botones de Acción en la Tabla */
+#tablaProductos button {
+    padding: 7px 12px;
+    margin-right: 5px;
+    font-size: 0.9em;
+    font-weight: 400;
+}
+
+#tablaProductos button:nth-child(1) { /* Botón Editar */
+    background-color: var(--color-warning);
+    color: var(--color-text-dark);
+}
+#tablaProductos button:nth-child(2) { /* Botón Eliminar */
+    background-color: var(--color-danger);
+    color: white;
+}
+
+/* -----------------------------------
+ * ESTILOS DE LA TIENDA (index.html)
+ * ----------------------------------- */
+
+/* Contenedor principal para la lista de productos (Grid Layout) */
+#lista {
+    display: grid;
+    /* Mantiene la adaptabilidad en pantallas más pequeñas */
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); 
+    gap: 20px;
+    padding: 20px 0;
+}
+
+/* Regla para 4 productos por fila en pantallas grandes (1200px o más) */
+@media (min-width: 1200px) {
+    #lista {
+        /* Fuerza 4 columnas de igual tamaño */
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
+
+/* Estilo para cada tarjeta de producto */
+#lista div.product-card { /* Usar la clase product-card que definimos */
+    background-color: var(--color-background-light);
+    border: none; /* Eliminar el borde feo */
+    border-radius: 10px;
+    box-shadow: var(--shadow-subtle); 
+    padding: 20px;
+    text-align: center;
+    transition: transform 0.3s, box-shadow 0.3s;
+}
+
+#lista a:hover div.product-card { /* Mejorar el efecto hover en el enlace */
+    transform: translateY(-8px); 
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+}
+
+/* Botón "Agregar al Carrito" */
+#lista button {
+    background-color: var(--color-success); /* Cambiar a verde más consistente */
+    color: white;
+    padding: 10px 20px;
+    border-radius: 50px; /* Hacerlo más redondo */
+}
+
+/* Imágenes de Producto */
+#lista img {
+    max-width: 100%;
+    height: 200px;
+    border-radius: 4px;
+    margin-bottom: 10px;
+}
+
+/* Título y Precio */
+#lista h3 {
+    color: #333;
+    margin: 5px 0;
+    font-size: 1.2em;
+}
+
+#lista p {
+    color: #007bff; /* Color para el precio */
+    font-size: 1.1em;
+    font-weight: bold;
+    margin-bottom: 15px;
+}
+
+/* Botón "Agregar al Carrito" */
+#lista button {
+    background-color: #ff9900; /* Naranja atractivo */
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.3s;
+}
+
+#lista button:hover {
+    background-color: #e68a00;
+}
+
+/* -----------------------------------
+ * ESTILOS DE BARRA DE BÚSQUEDA Y FILTROS
+ * ----------------------------------- */
+
+ .filter-center-wrapper {
+    display: flex;
+    justify-content: center; /* CLAVE: CENTRA la barra de filtros */
+    width: 100%; 
+    padding: 10px 0; /* Un poco de padding vertical para no pegarse a las HR */
+    background-color: var(--color-background-soft); /* Fondo para definir el área */
+}
+
+.filter-controls {
+    display: flex;
+    flex-wrap: wrap; /* Permite que los elementos se envuelvan en pantallas pequeñas */
+    gap: 15px; /* Espacio entre grupos de filtros */
+    align-items: flex-end; /* Alinea los inputs en la parte inferior */
+
+    width: auto; 
+    max-width: 100%;
+
+    padding: 0; 
+    margin: 0;
+    background-color: var(--color-background-soft); /* Fondo ligero */
+}
+
+.input-group {
+    display: flex;
+    flex-direction: column; /* Etiqueta arriba, input abajo */
+    justify-content: flex-end; /* Asegura que el input se pegue a la base del grupo */
+}
+
+
+.filter-controls label {
+    font-size: 0.9em;
+    color: var(--color-text-dark);
+    font-weight: 600;
+    margin-bottom: 2px;
+}
+
+/* Estilo unificado para Inputs y Selects */
+.filter-controls input[type="text"],
+.filter-controls input[type="number"],
+.filter-controls select {
+    padding: 4px 10px; /* Reducir padding para menor altura */
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05); /* Sombra interna sutil */
+    height: 30px; /* Altura fija para alineación */
+    min-width: 150px;
+}
+
+/* Grupo de Precio (inputs lado a lado) */
+.price-inputs {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.price-inputs input {
+    width: 80px;
+    height: 30px;
+}
+
+.price-inputs span {
+    font-size: 1.1em;
+    color: #999;
+}
+
+/* -------------------- Botones de Acción -------------------- */
+.action-buttons {
+    display: flex;
+    gap: 10px;
+}
+
+.filter-controls button {
+    height: 30px; /* Altura igual a los inputs para una alineación visual perfecta */
+    padding: 0 20px;
+    border: none;
+    border-radius: 4px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s, box-shadow 0.2s;
+}
+
+.filter-apply-btn {
+    background-color: var(--color-primary); /* Azul principal */
+    color: white;
+}
+
+.filter-apply-btn:hover {
+    background-color: #0069d9;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.filter-reset-btn {
+    background-color: var(--color-secondary); /* Gris */
+    color: white;
+}
+
+.filter-reset-btn:hover {
+    background-color: #5a6268;
+}
+
+/* Ajuste Responsivo */
+@media (max-width: 768px) {
+    .filter-controls {
+        flex-direction: column;
+        gap: 15px;
+    }
+    .search-group {
+        width: 100%;
+    }
+    .action-buttons {
+        width: 100%;
+        justify-content: space-between;
+    }
+    .action-buttons button {
+        flex: 1; /* Hace que los botones llenen el ancho */
+    }
+}
+
+/* -----------------------------------
+ * ESTILOS DEL CARRITO (carrito.html)
+ * ----------------------------------- */
+
+#carrito div {
+    background-color: var(--color-background-light);
+    border: none;
+    padding: 15px;
+    margin: 10px 0;
+    border-radius: 8px;
+    display: flex; /* Para alinear elementos en la misma línea */
+    justify-content: space-between; /* Empujar el botón a la derecha */
+    align-items: center;
+}
+
+#carrito strong {
+    font-size: 1.1em;
+    color: #333;
+    flex-grow: 1; /* Permite que el nombre ocupe el espacio disponible */
+}
+
+#carrito button {
+    background-color: #dc3545; /* Rojo para eliminar */
+    color: white;
+    padding: 8px 12px;
+    font-size: 0.9em;
+}
+
+#carrito button:hover {
+    background-color: #c82333;
+}
+
+#total {
+    margin-top: 30px;
+    padding: 15px;
+    background-color: #e9ecef;
+    border: 1px solid #ced4da;
+    border-radius: 6px;
+    font-size: 1.5em;
+    font-weight: bold;
+    color: #0056b3;
+}
+
+/* -----------------------------------
+ * ESTILOS DE LA PÁGINA DE DETALLE (detalle.html)
+ * ----------------------------------- */
+
+#producto-detalle {
+    /* Utiliza Flexbox para colocar la imagen y la información lado a lado */
+    display: flex;
+    gap: 40px; /* Espacio entre los dos contenedores principales */
+    margin-top: 30px;
+    background-color: white;
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    align-items: flex-start; /* Alinea los elementos en la parte superior */
+}
+
+#producto-imagen {
+    /* El contenedor de la imagen tiene un ancho fijo para un buen display */
+    flex-shrink: 0;
+    max-width: 400px;
+}
+
+#producto-imagen img {
+    width: 100%;
+    height: auto;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    object-fit: cover; /* Asegura que la imagen se vea bien */
+}
+
+#producto-info {
+    /* El contenedor de información ocupa el resto del espacio */
+    flex-grow: 1;
+}
+
+#producto-info h1 {
+    font-size: 2.2em;
+    color: #333;
+    border-bottom: 2px solid #f0f0f0;
+    margin-bottom: 10px;
+    padding-bottom: 5px;
+}
+
+#producto-precio {
+    /* Destacar el precio */
+    font-size: 3em;
+    color: #ff9900; /* Naranja/Ámbar */
+    font-weight: bold;
+    margin: 20px 0;
+}
+
+#producto-info h3 {
+    font-size: 1.3em;
+    color: #555;
+    margin-top: 20px;
+}
+
+/* Botón "Añadir al Carrito" en la página de detalle */
+#producto-info button {
+    background-color: #28a745; /* Verde */
+    color: white;
+    padding: 15px 30px;
+    font-size: 1.1em;
+    margin-top: 25px;
+    border-radius: 6px;
+}
+
+#producto-info button:hover {
+    background-color: #218838;
+}
+
+/* Manejo de la Responsividad */
+@media (max-width: 768px) {
+    #producto-detalle {
+        /* En pantallas pequeñas, apila la imagen y la información */
+        flex-direction: column;
+        gap: 20px;
+        padding: 15px;
+    }
+    #producto-imagen {
+        max-width: 100%;
+    }
+    #producto-precio {
+        font-size: 2em;
+    }
+}
+
+/* -----------------------------------
+ * ESTILOS DE NOTIFICACIÓN (Toast)
+ * ----------------------------------- */
+
+#toast-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 1000; /* Asegura que esté por encima de todo */
+}
+
+.toast {
+    background-color: #333;
+    color: white;
+    padding: 15px 20px;
+    border-radius: 5px;
+    margin-bottom: 10px;
+    opacity: 0; /* Empieza invisible */
+    transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+    transform: translateX(100%); /* Empieza fuera de pantalla */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    min-width: 250px;
+}
+
+.toast.show {
+    opacity: 1;
+    transform: translateX(0); /* Se desliza a la vista */
+}
+
+/* Colores para diferentes tipos de mensajes */
+.toast.success {
+    background-color: #28a745; /* Verde */
+}
+
+.toast.error {
+    background-color: #dc3545; /* Rojo */
+}
+
+.toast.info {
+    background-color: #007bff; /* Azul */
+}
