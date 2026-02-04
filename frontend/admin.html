@@ -52,17 +52,45 @@
     <button type="button" onclick="resetForm()">Cancelar Edición</button>
 </form>
     
+<section class="inventory-section" style="margin-top: 40px; padding: 20px; background: #fff; border-radius: 8px; box-shadow: var(--shadow-subtle);">
+    <h2>📦 Gestión de Entradas (Inventario)</h2>
+    <p style="color: #666; font-size: 0.9em;">Usa este formulario cuando recibas nueva mercancía de un proveedor.</p>
+    
+    <form id="formInventario" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; align-items: flex-end;">
+        <div class="input-group">
+            <label for="inv-producto">Seleccionar Producto:</label>
+            <select id="inv-producto" required>
+                <option value="">Cargando productos...</option>
+            </select>
+        </div>
+        
+        <div class="input-group">
+            <label for="inv-cantidad">Cantidad a Ingresar:</label>
+            <input type="number" id="inv-cantidad" min="1" placeholder="Ej: 50" required>
+        </div>
+
+        <div class="input-group">
+            <label for="inv-motivo">Motivo / Nota:</label>
+            <input type="text" id="inv-motivo" placeholder="Ej: Compra a proveedor X">
+        </div>
+
+        <button type="submit" class="filter-apply-btn" style="background-color: var(--color-success); height: 42px;">
+            Actualizar Stock
+        </button>
+    </form>
+</section>
+
     <hr>
 
     <h2>🗑️ Productos Existentes</h2>
     <table id="tablaProductos">
         <thead>
-            <tr>
-                <th>ID</th>
-                <th>Nombre</th>
-                <th>Precio</th>
-                <th>Acciones</th>
-            </tr>
+        <tr>
+            <th>ID</th>
+            <th>Nombre</th>
+            <th>Stock</th> <th>Precio</th>
+            <th>Acciones</th>
+        </tr>
         </thead>
         <tbody>
         </tbody>
@@ -154,26 +182,32 @@
             });
     }
 
-    function listarProductos() {
-    // Esta ruta GET /productos es pública
+   function listarProductos() {
     fetch(API_BASE + PRODUCTS_ROUTE) 
         .then(r => r.json())
         .then(data => { 
-            // CORRECCIÓN CLAVE: Acepta tanto el array simple [] como el objeto de paginación {products: []}
             const productos = data.products || data; 
-            
-            // Asegura que sea un array antes de usar forEach
             const productosArray = Array.isArray(productos) ? productos : []; 
 
             const tbody = document.querySelector("#tablaProductos tbody");
             tbody.innerHTML = "";
 
             productosArray.forEach(p => {
+                // --- LÓGICA DE COLOR PARA STOCK ---
+                const minVal = p.stock_minimo || 5; // Mínimo por defecto si es null
+                let estiloStock = ""; 
+                
+                if (p.stock <= minVal) {
+                    // Aplicamos el color rojo si el stock es bajo
+                    estiloStock = 'style="color: #dc3545; font-weight: bold;"';
+                }
+                // ----------------------------------
+
                 const tr = document.createElement("tr");
                 tr.innerHTML = `
                     <td>${p.id}</td>
                     <td>${p.nombre}</td>
-                    <td>$${p.precio}</td>
+                    <td ${estiloStock}>${p.stock}</td> <td>$${p.precio}</td>
                     <td>
                         <button onclick="cargarParaEditar(${p.id})">Editar</button>
                         <button onclick="eliminarProducto(${p.id})">Eliminar</button>
@@ -246,6 +280,84 @@
             }
         });
     });
+
+// A. Llenar el selector de productos automáticamente
+function cargarProductosEnSelect() {
+    fetch('http://localhost:3000/productos')
+        .then(res => res.json())
+        .then(data => {
+            const productos = data.products || data;
+            const select = document.getElementById('inv-producto');
+            
+            // Limpiar y poner opción por defecto
+            select.innerHTML = '<option value="">-- Elige un producto --</option>';
+            
+            productos.forEach(p => {
+                // Usamos p.id para asegurarnos de que el valor enviado sea el correcto
+                select.innerHTML += `<option value="${p.id}">${p.nombre} (Stock actual: ${p.stock})</option>`;
+            });
+        })
+        .catch(err => console.error("Error cargando select:", err));
+}
+
+//Enviar el ajuste de inventario al servidor
+document.getElementById('formInventario').addEventListener('submit', function(e) {
+    e.preventDefault();
+
+    const datos = {
+        id_producto: document.getElementById('inv-producto').value,
+        cantidad: parseInt(document.getElementById('inv-cantidad').value),
+        tipo: 'ENTRADA',
+        motivo: document.getElementById('inv-motivo').value || 'Entrada manual'
+    };
+
+    fetch('http://localhost:3000/inventario/ajuste', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(datos)
+    })
+    .then(res => res.json())
+    .then(data => {
+        showToast("✅ Stock actualizado correctamente", "success");
+        this.reset();
+        cargarProductosEnSelect(); // Refrescar el select
+        listarProductos(); // Refrescar tu tabla principal de productos
+    })
+    .catch(err => showToast("❌ Error al actualizar inventario", "error"));
+});
+
+// Ejecutar al cargar la página
+document.addEventListener("DOMContentLoaded", cargarProductosEnSelect);
+
+function verificarAlertasInventario() {
+    fetch('http://localhost:3000/productos')
+        .then(res => res.json())
+        .then(data => {
+            // Extraemos el array de productos (manejando ambos formatos posibles)
+            const productos = data.products || data;
+            
+            // Filtrar productos con stock crítico
+            const criticos = productos.filter(p => {
+                // Si stock_minimo es null en la BD, usamos 5 como valor por defecto
+                const minimo = p.stock_minimo !== null && p.stock_minimo !== undefined 
+                               ? p.stock_minimo 
+                               : 5;
+                return p.stock <= minimo;
+            });
+            
+            if (criticos.length > 0) {
+                const nombres = criticos.map(p => p.nombre).join(', ');
+                showToast(`⚠️ Stock Bajo en: ${nombres}`, 'error');
+                
+                // OPCIONAL: También puedes resaltar el botón de inventario si tienes uno
+                console.log("Productos en estado crítico:", criticos);
+            }
+        })
+        .catch(err => console.error("Error al verificar alertas:", err));
+}
+
+// Llamar a la función al cargar el panel de admin
+document.addEventListener("DOMContentLoaded", verificarAlertasInventario);
 
     // LÓGICA DE EJECUCIÓN/INICIALIZACIÓN
     function checkAuthAndLoad() {

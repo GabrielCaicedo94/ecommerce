@@ -1009,3 +1009,11 @@ button[type="button"]:hover {
 .toast.info {
     background-color: #007bff; /* Azul */
 }
+
+/* Clase opcional para resaltar la celda completa si prefieres no usar estilos en línea */
+.stock-critico {
+    color: var(--color-danger);
+    font-weight: 700;
+    background-color: rgba(220, 53, 69, 0.1); /* Un fondo rojo muy suave */
+    border-radius: 4px;
+}

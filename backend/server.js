@@ -370,6 +370,42 @@ app.post('/ordenes', (req, res) => {
     });
 });
 
+//7. Registrar entrada o ajuste de inventario
+app.post('/inventario/ajuste', (req, res) => {
+    // Extraemos los datos del cuerpo de la petición
+    const { id_producto, cantidad, tipo, motivo } = req.body;
+
+    // Validación: Si falta el ID o la cantidad, detenemos el proceso antes de que falle
+    if (!id_producto || !cantidad) {
+        return res.status(400).json({ mensaje: "Faltan datos: ID o Cantidad" });
+    }
+
+    const sqlUpdate = tipo === 'ENTRADA' 
+        ? "UPDATE productos SET stock = stock + ? WHERE id = ?" 
+        : "UPDATE productos SET stock = stock - ? WHERE id = ?";
+
+    // Primera consulta: Actualizar stock
+    db.query(sqlUpdate, [cantidad, id_producto], (err, result) => {
+        if (err) {
+            console.error("Error al actualizar stock:", err);
+            return res.status(500).json({ mensaje: "Error en base de datos al actualizar", detalle: err });
+        }
+
+        // Segunda consulta: Insertar en el historial (Kardex)
+        const sqlInsert = "INSERT INTO movimientos_inventario (id_producto, tipo, cantidad, motivo) VALUES (?, ?, ?, ?)";
+        const motivoFinal = motivo || 'Ajuste manual';
+
+        db.query(sqlInsert, [id_producto, tipo, cantidad, motivoFinal], (err2) => {
+            if (err2) {
+                console.error("Error al registrar movimiento:", err2);
+                return res.status(500).json({ mensaje: "Error al registrar el historial", detalle: err2 });
+            }
+            
+            // Respuesta exitosa en formato JSON
+            res.json({ success: true, mensaje: "Inventario actualizado y registrado correctamente" });
+        });
+    });
+});
 
 // INICIO DEL SERVIDOR
 app.listen(PORT, () => {
