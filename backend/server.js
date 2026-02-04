@@ -328,44 +328,54 @@ app.get("/productos/:id", (req, res) => {
 
 // 6. RUTA: POST /ordenes - PROCESAR CHECKOUT 
 app.post('/ordenes', (req, res) => {
-    const { nombre_cliente, email_cliente, telefono_cliente, direccion_envio, total, carrito } = req.body;
+    const { nombre_cliente, email_cliente, total, carrito, direccion_envio } = req.body;
+
+    console.log("Iniciando procesamiento de orden para:", email_cliente);
 
     db.beginTransaction(err => {
-        if (err) return res.status(500).json({ mensaje: 'Error interno del servidor.' });
+        if (err) return res.status(500).json({ mensaje: "Error de transacción" });
 
-        // 2. INSERTAR la Orden (Encabezado)
-        const sqlInsertOrder = `INSERT INTO ordenes (nombre_cliente, email_cliente, telefono_cliente, direccion_envio, total) VALUES (?, ?, ?, ?, ?)`;
-        const orderValues = [nombre_cliente, email_cliente, telefono_cliente, direccion_envio, total];
-
-        db.query(sqlInsertOrder, orderValues, (err, result) => {
-            if (err) return db.rollback(() => { res.status(500).json({ mensaje: 'Error al guardar la orden.' }); });
+        const sqlOrden = "INSERT INTO ordenes (nombre_cliente, email_cliente, total, direccion_envio) VALUES (?, ?, ?, ?)";
+       db.query(sqlOrden, [nombre_cliente, email_cliente, total, direccion_envio || 'Retiro en local'], (err, result) => {
+            if (err) {
+                console.error("Error en INSERT ordenes:", err);
+                return db.rollback(() => res.status(500).json({ mensaje: "Error al crear orden", error: err.message }));
+            }
 
             const ordenId = result.insertId;
-            let detallesGuardados = 0;
+            let completados = 0;
 
-            // 3. INSERTAR los Detalles de la Orden 
-            if (carrito && carrito.length > 0) {
-                carrito.forEach(item => {
-                    const sqlInsertDetail = `INSERT INTO detalles_orden (orden_id, producto_id, cantidad, precio_unitario) VALUES (?, ?, ?, ?)`;
-                    const detailValues = [ordenId, item.id, item.cantidad, item.precio];
+            carrito.forEach(item => {
+                // IMPORTANTE: Asegúrate que la columna se llame 'stock' en la tabla 'productos'
+                const sqlStock = "UPDATE productos SET stock = stock - ? WHERE id = ?";
+                
+                db.query(sqlStock, [item.cantidad, item.id], (errStock) => {
+                    if (errStock) {
+                        console.error(`Error actualizando stock para producto ID ${item.id}:`, errStock);
+                        return db.rollback(() => res.status(500).json({ mensaje: "Error en stock", error: errStock.message }));
+                    }
 
-                    db.query(sqlInsertDetail, detailValues, (err) => {
-                        if (err) return db.rollback(() => { res.status(500).json({ mensaje: 'Error al guardar detalles del producto.' }); });
+                    const sqlDetalle = "INSERT INTO detalles_orden (orden_id, producto_id, cantidad, precio_unitario) VALUES (?, ?, ?, ?)";
+                    db.query(sqlDetalle, [ordenId, item.id, item.cantidad, item.precio], (errDet) => {
+                        if (errDet) {
+                            console.error("Error en INSERT detalles_orden:", errDet);
+                            return db.rollback(() => res.status(500).json({ mensaje: "Error en detalle", error: errDet.message }));
+                        }
 
-                        detallesGuardados++;
-
-                        if (detallesGuardados === carrito.length) {
-                            db.commit(err => {
-                                if (err) return db.rollback(() => { res.status(500).json({ mensaje: 'Error al confirmar la transacción.' }); });
-                                
-                                res.status(201).json({ mensaje: '¡Orden procesada con éxito!', ordenId: ordenId });
+                        completados++;
+                        if (completados === carrito.length) {
+                            db.commit(errCommit => {
+                                if (errCommit) {
+                                    console.error("Error al hacer commit:", errCommit);
+                                    return db.rollback(() => res.status(500).json({ mensaje: "Error al confirmar" }));
+                                }
+                                console.log("Orden procesada con éxito ID:", ordenId);
+                                res.json({ success: true, mensaje: "¡Compra exitosa!", ordenId: ordenId });
                             });
                         }
                     });
                 });
-            } else {
-                db.rollback(() => { res.status(400).json({ mensaje: 'El carrito está vacío.' }); });
-            }
+            });
         });
     });
 });

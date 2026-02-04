@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Finalizar Compra - Checkout</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
     <style>
@@ -156,53 +157,141 @@
 
         const totalFinal = cargarResumen();
 
-        document.getElementById('formCheckout').addEventListener('submit', async (e) => {
+        let datosParaEnvio = null; // Variable global temporal
+
+        // 1. Manejador del Formulario
+        document.getElementById('formCheckout').addEventListener('submit', (e) => {
             e.preventDefault();
 
             if (carrito.length === 0) {
-                showToast('No puedes procesar una orden con el carrito vacío.', 'error');
+                showToast('El carrito está vacío', 'error');
                 return;
             }
 
-            const data = {
+            // Capturamos los datos para usarlos después de la confirmación
+            datosParaEnvio = {
                 nombre_cliente: document.getElementById('nombre_cliente').value,
                 email_cliente: document.getElementById('email_cliente').value,
                 telefono_cliente: document.getElementById('telefono_cliente').value,
                 direccion_envio: document.getElementById('direccion_envio').value,
                 total: totalFinal,
-                carrito: carrito // Enviamos el array completo del carrito
+                carrito: carrito 
             };
 
-            // Petición POST a la nueva ruta /ordenes
-            const response = await fetch(API_URL_ORDENES, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data)
+            // Mostramos el modal en lugar del confirm() feo
+            document.getElementById('modal-confirmacion').style.display = 'flex';
+        });
+
+        function cerrarModal() {
+            document.getElementById('modal-confirmacion').style.display = 'none';
+        }
+
+        // 2. Ejecución Real de la Compra
+        async function ejecutarCompraFinal() {
+            cerrarModal();
+            showToast("Procesando transacción...", "info");
+
+            try {
+                const response = await fetch(API_URL_ORDENES, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(datosParaEnvio)
+                });
+
+                const resData = await response.json();
+                
+                if (response.ok) {
+                    showToast(`¡Éxito! Generando comprobante...`, 'success');
+                    
+                    // Generar PDF Pro
+                    generarNotaVenta(resData.ordenId, datosParaEnvio.nombre_cliente, totalFinal, carrito);
+                    
+                    localStorage.removeItem('carrito');
+                    setTimeout(() => { window.location.href = 'index.html'; }, 4000);
+                } else {
+                    showToast(`Error: ${resData.mensaje}`, 'error');
+                }
+            } 
+
+            catch (error) {
+                showToast("Error de conexión", "error");
+            }
+        }
+
+        // 3. Generación de PDF con diseño Profesional
+        function generarNotaVenta(ordenId, cliente, total, carrito) {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+
+            // Estética de Cabecera
+            doc.setFillColor(33, 37, 41); // Color oscuro elegante
+            doc.rect(0, 0, 210, 40, 'F');
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(22);
+            doc.text("E-SHOP | COMPROBANTE", 20, 25);
+            
+            // Información de Orden
+            doc.setTextColor(100, 100, 100);
+            doc.setFontSize(10);
+            doc.text(`NÚMERO DE ORDEN: #${ordenId}`, 140, 50);
+            doc.text(`FECHA: ${new Date().toLocaleDateString()}`, 140, 55);
+
+            // Datos Cliente
+            doc.setTextColor(0, 0, 0);
+            doc.setFontSize(12);
+            doc.setFont("helvetica", "bold");
+            doc.text("CLIENTE:", 20, 50);
+            doc.setFont("helvetica", "normal");
+            doc.text(cliente, 20, 58);
+            doc.text(datosParaEnvio.email_cliente, 20, 64);
+            doc.text(`Dir: ${datosParaEnvio.direccion_envio}`, 20, 70);
+
+            // Tabla de Productos
+            let y = 85;
+            doc.setFillColor(245, 245, 245);
+            doc.rect(20, y, 170, 8, 'F');
+            doc.setFont("helvetica", "bold");
+            doc.text("PRODUCTO", 25, y + 6);
+            doc.text("CANT.", 120, y + 6);
+            doc.text("SUBTOTAL", 160, y + 6);
+
+            doc.setFont("helvetica", "normal");
+            y += 15;
+            carrito.forEach(item => {
+                doc.text(item.nombre.substring(0, 35), 25, y);
+                doc.text(item.cantidad.toString(), 120, y);
+                doc.text(`$${(item.precio * item.cantidad).toFixed(2)}`, 160, y);
+                y += 10;
             });
 
-            const responseData = await response.json();
-            
-            if (response.ok) {
-                showToast(`Orden #${responseData.ordenId} confirmada. Recibirás un email.`, 'success');
-                
-                // Limpiar el carrito después de la compra exitosa
-                localStorage.removeItem('carrito');
-                carrito = [];
-                cargarResumen(); // Actualiza la vista
-                
-                // Opcional: Redirigir al usuario
-                setTimeout(() => {
-                    window.location.href = 'index.html'; 
-                }, 3000);
+            // Pie de página con Total
+            doc.line(20, y, 190, y);
+            doc.setFontSize(16);
+            doc.setFont("helvetica", "bold");
+            doc.text(`TOTAL PAGADO: $${total.toFixed(2)}`, 110, y + 15);
 
-            } else {
-                showToast(`Error al procesar: ${responseData.mensaje}`, 'error');
-                console.error('Error del servidor:', responseData);
-            }
-        });
+            window.open(doc.output('bloburl'), '_blank');
+        }
+    
     </script>
+
     <footer style="text-align: center; padding: 20px; background-color: var(--color-background-light); color: #666;">
         &copy; 2025 E-Shop. Todos los derechos reservados.
     </footer>
+
+    <div id="modal-confirmacion" class="modal-overlay" style="display: none;">
+    <div class="modal-content">
+        <div class="modal-header">
+            <span style="font-size: 2em;">🛒</span>
+            <h3>¿Confirmar tu pedido?</h3>
+        </div>
+        <p>Al confirmar, procesaremos tu pago y actualizaremos nuestro inventario inmediatamente.</p>
+        <div class="modal-actions">
+            <button onclick="cerrarModal()" class="btn-cancelar">Revisar más</button>
+            <button onclick="ejecutarCompraFinal()" class="btn-confirmar-final">¡Sí, comprar ahora!</button>
+        </div>
+    </div>
+</div>
+
 </body>
 </html>
