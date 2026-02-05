@@ -328,15 +328,15 @@ app.get("/productos/:id", (req, res) => {
 
 // 6. RUTA: POST /ordenes - PROCESAR CHECKOUT 
 app.post('/ordenes', (req, res) => {
-    const { nombre_cliente, email_cliente, total, carrito, direccion_envio } = req.body;
+    const { nombre_cliente, email_cliente, total, carrito, direccion_envio, telefono_cliente } = req.body;
 
     console.log("Iniciando procesamiento de orden para:", email_cliente);
 
     db.beginTransaction(err => {
         if (err) return res.status(500).json({ mensaje: "Error de transacción" });
 
-        const sqlOrden = "INSERT INTO ordenes (nombre_cliente, email_cliente, total, direccion_envio) VALUES (?, ?, ?, ?)";
-       db.query(sqlOrden, [nombre_cliente, email_cliente, total, direccion_envio || 'Retiro en local'], (err, result) => {
+       const sqlOrden = "INSERT INTO ordenes (nombre_cliente, email_cliente, total, direccion_envio, telefono_cliente) VALUES (?, ?, ?, ?, ?)";
+       db.query(sqlOrden, [nombre_cliente, email_cliente, total, direccion_envio, telefono_cliente || 'N/A'], (err, result) => {
             if (err) {
                 console.error("Error en INSERT ordenes:", err);
                 return db.rollback(() => res.status(500).json({ mensaje: "Error al crear orden", error: err.message }));
